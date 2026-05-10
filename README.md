@@ -46,7 +46,7 @@ date: 2026-05-10
 ---
 ```
 
-Body uses normal Markdown; fenced code blocks get syntax highlighting via Rouge.
+Body uses normal Markdown; fenced code blocks get syntax highlighting via Rouge. Save files as **UTF-8 without BOM**—a BOM before the opening `---` breaks YAML front matter in Jekyll, so posts disappear from the site.
 
 **Dates:** `_config.yml` sets **`future: true`**, and the Pages workflow passes **`--future`**, so posts with a **`date:`** slightly in the future still appear after deploy (Jekyll’s default is to hide them until that calendar day in UTC).
 

@@ -1,4 +1,4 @@
-﻿---
+---
 layout: case_study
 title: "Concurrent Session Restriction Bypass via Improper Client-Side Device Binding"
 description: "Case study on trusting client-supplied device identity for concurrent session enforcement—and how that breaks under reverse engineering."
