@@ -21,8 +21,8 @@ layout: default
       <p class="listing__intro">Series can be read in order or on their own. Everything else lives under standalone articles.</p>
     </header>
 
-    {% if site.writing_series %}
-    {% for ser in site.writing_series %}
+    {% if site.data.writing_series %}
+    {% for ser in site.data.writing_series %}
       {% assign in_series = site.case_studies | where: "series", ser.slug | sort: "series_order" %}
       {% if in_series.size > 0 %}
       <section id="series-{{ ser.slug }}" class="series-block" aria-labelledby="series-title-{{ ser.slug }}">
@@ -67,14 +67,14 @@ layout: default
     {% for group in grouped_series %}
       {% assign slug = group.name %}
       {% if slug != "" %}
-        {% assign configured = site.writing_series | where: "slug", slug | first %}
+        {% assign configured = site.data.writing_series | where: "slug", slug | first %}
         {% unless configured %}
           {% assign items = group.items | sort: "series_order" %}
           <section id="series-{{ slug }}" class="series-block series-block--orphan" aria-labelledby="orphan-series-{{ slug }}">
             <header class="series-block__header">
               <p class="series-block__label">Series</p>
               <h3 id="orphan-series-{{ slug }}" class="series-block__title">{{ slug }}</h3>
-              <p class="series-block__desc">Posts share this <code>series</code> slug but there is no matching entry under <code>writing_series</code> in <code>_config.yml</code>. Add one to show a friendly title and description on the homepage.</p>
+              <p class="series-block__desc">Posts share this <code>series</code> slug but there is no matching row in <code>_data/writing_series.yml</code>. Add one to show a friendly title and description on the homepage.</p>
             </header>
             <ul class="card-grid card-grid--series" role="list">
               {% for study in items %}
@@ -108,7 +108,8 @@ layout: default
     {% assign __gb = site.case_studies | group_by: "series" %}
     {% assign standalone = site.case_studies | where: "series", "__standalone_sentinel__" %}
     {% for g in __gb %}
-      {% if g.name == blank %}
+      {% assign __gk = g.name | strip %}
+      {% if __gk == "" %}
         {% assign standalone = g.items | sort: "date" | reverse %}
       {% endif %}
     {% endfor %}

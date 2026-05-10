@@ -7,9 +7,9 @@ tags:
   - authentication
   - case-study
   - owasp
-date: 2026-05-10
+date: 2026-05-07
 featured: true
-series: broken-trust-client-controls
+series: mitm-exploit
 series_order: 1
 ---
 

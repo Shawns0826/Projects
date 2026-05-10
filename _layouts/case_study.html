@@ -7,7 +7,7 @@ layout: default
 {% assign prev_post = nil %}
 {% assign next_post = nil %}
 {% if page.series %}
-  {% assign series_meta = site.writing_series | where: "slug", page.series | first %}
+  {% assign series_meta = site.data.writing_series | where: "slug", page.series | first %}
   {% assign siblings = site.case_studies | where: "series", page.series | sort: "series_order" %}
   {% assign prev_ord = page.series_order | minus: 1 %}
   {% assign next_ord = page.series_order | plus: 1 %}

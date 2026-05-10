@@ -1,0 +1,5 @@
+# Homepage series blocks: each `slug` must match `series:` on participating posts in `_case_studies/`.
+- slug: mitm-exploit
+  title: "MITM exploit"
+  description: "Multi-part write-up on proxy-assisted manipulation of trusted clients—one vulnerability arc split across several posts."
+  parts_planned: 4
