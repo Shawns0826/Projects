@@ -1,0 +1,26 @@
+---
+layout: default
+---
+<article class="case-study">
+  <header class="case-study__hero">
+    <div class="case-study__hero-inner">
+      <p class="case-study__eyebrow">Case study</p>
+      <h1 class="case-study__title">{{ page.title }}</h1>
+      {% if page.description %}<p class="case-study__deck">{{ page.description }}</p>{% endif %}
+      <div class="case-study__meta">
+        {% if page.date %}<time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%B %-d, %Y" }}</time>{% endif %}
+        {% if page.tags %}
+        <span class="case-study__dot" aria-hidden="true">·</span>
+        <ul class="case-study__tags">
+          {% for tag in page.tags %}<li>{{ tag }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+      <a class="case-study__back" href="{{ '/' | relative_url }}#case-studies">← All case studies</a>
+    </div>
+  </header>
+
+  <div class="case-study__body prose">
+    {{ content }}
+  </div>
+</article>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0c0e13">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
+  {% seo %}
+</head>
+<body class="site">
+  <div class="site__bg" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-logo" href="{{ '/' | relative_url }}">
+        <span class="site-logo__mark" aria-hidden="true"></span>
+        <span class="site-logo__text">
+          <span class="site-logo__title">{{ site.title }}</span>
+          {% if site.tagline %}<span class="site-logo__tag">{{ site.tagline }}</span>{% endif %}
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="{{ '/' | relative_url }}">Home</a>
+        <a href="{{ '/' | relative_url }}#case-studies">Case studies</a>
+        <a href="https://github.com/Shawns0826/Projects" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="site-main">
+    {{ content }}
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <p>{{ site.title }} · Built with <a href="https://jekyllrb.com/">Jekyll</a> on <a href="https://pages.github.com/">GitHub Pages</a>.</p>
+    </div>
+  </footer>
+</body>
+</html>

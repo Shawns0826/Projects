@@ -1,12 +1,5 @@
-# Projects
+# Projects (draft workspace)
 
-Each subfolder is one article or case study.
+Published writing that appears on **GitHub Pages** is sourced from **`/_case_studies/`** (Jekyll collection).
 
-**Naming:** Use lowercase `kebab-case` (e.g. `billing-dashboard-refactor`) so URLs and slugs stay consistent.
-
-**Files:**
-
-- `post.md` — main Markdown file (copy from `/templates`).
-- `images/` — optional; reference with `./images/file.png` from `post.md`.
-
-To add a new piece: duplicate an existing project folder or start from a blank folder plus a template from `/templates`.
+Use this folder for notes, outlines, or material that should **not** ship on the site yet. When a piece is ready, add a Markdown file under `_case_studies/` with front matter (`layout` is set by defaults—see repo `_config.yml`).

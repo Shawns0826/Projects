@@ -1,16 +1,15 @@
 ---
-title: "Concurrent Session Enforcement Bypass via Improper Client-Side Device Binding"
-slug: concurrent-session-enforcement-bypass-client-side-device-binding
-description: "Case study in broken trust of client-side security controls—how attacker-controlled device identity let parallel sessions coexist despite a single-session or seat policy."
+layout: case_study
+title: "Concurrent Session Restriction Bypass via Improper Client-Side Device Binding"
+description: "Case study on trusting client-supplied device identity for concurrent session enforcement—and how that breaks under reverse engineering."
 tags:
   - security
   - authentication
   - case-study
   - owasp
-draft: true
+date: 2026-05-10
+featured: true
 ---
-
-# Concurrent Session Restriction Bypass via Improper Client-Side Device Binding
 
 **Case study in broken trust of client-side security controls**
 
@@ -41,7 +40,7 @@ The tools needed for this exploitation are a rooted android emulator with burp, 
 
 To begin with, the application has root detection.This needs to be bypassed so that we can run the application on our rooted device withburp to monitor and manipulate network traffic. Because the application does not use Google Play Integrity attestation, we can simply utilize reverse engineering to bypass this.  After disassembling the apk into editable smali using apktools, we can grep through the code base and look for where root detection is enforced and bypass it. We find this sole method responsible for root detection.
 
-'''
+```smali
 .method public static isDeviceRooted()Z
     .locals 1
 
@@ -94,15 +93,16 @@ To begin with, the application has root detection.This needs to be bypassed so t
     :goto_1
     return v0
 .end method
+```
 
-Now the method can simply be rewritten as 
+Now the method can simply be rewritten as:
 
-
+```smali
 .method public static isDeviceRooted()Z
     
     return v0
 .end method
-'''
+```
 
 Now that this simple root detection has been bypassed,it is now time to sign and install the cracked client into our rooted device and we are ready to begin exploitation.
 
@@ -110,21 +110,25 @@ Now that this simple root detection has been bypassed,it is now time to sign and
 
 Exact parameter values have been anonymized.
 
-This JSON payload is sent to the server during authentication
+This JSON payload is sent to the server during authentication:
 
+```json
 {"appVersion":"1.0.2","cbn":"","cfv":"","chak":"","chsi":"","creditAmount":6,"csak":"","dateExpire":"25/10/2026","description":"","detachDevices":false,"deviceId":"75c09bb7-aa3a-4a3c-9c92-de721b066aeb","fullName":"user name","id":"68d599741a0b23cafba698ea","ivit":"","kidp":"","model":"Phone","name":"username","password":"102030","product":"vbox86p","refId":"1234","role":"app","sdkVersion":"27"}
+```
 
-The important part of the JSON payload to pay attention to is the deviceId field. Now the behavior of the app is that if another user has an active session but with another deviceId, the server responds with 
+The important part of the JSON payload to pay attention to is the deviceId field. Now the behavior of the app is that if another user has an active session but with another deviceId, the server responds with:
 
-
+```json
 {"message":"User assigned to another device. Are you sure you want to unlink the device? You will need to sign in again."}
+```
 
 If the user clicks OK, the previuous users session is ended and our current user can now start their session. Their deviceiD now replaces the previous deviceId in the database.
 
 
-Now lets grep through the client and see which method is responsible for returning the deviceId. We find this smali method
+Now lets grep through the client and see which method is responsible for returning the deviceId. We find this smali method:
 
-'''.method public static getId(Landroid/content/Context;)Ljava/lang/String;
+```smali
+.method public static getId(Landroid/content/Context;)Ljava/lang/String;
     .locals 3
 
     const-string v0, ""
@@ -199,20 +203,23 @@ Now lets grep through the client and see which method is responsible for returni
     :catch_0
     return-object v0
 .end method
-'''
+```
 
+Again, now all a malicious actor has to do is patch it like so:
 
-Again, now all a malicious actor has to do is patch it like so
-
+```smali
 .method public static getId(Landroid/content/Context;)Ljava/lang/String;
     .locals 1
     const-string v0, "abc"
     return-object v0
 .end method
+```
 
-and after building and signing, their new patched client now returns the same hardcoded deviceId regardless of which device is running the client 
+and after building and signing, their new patched client now returns the same hardcoded deviceId regardless of which device is running the client:
 
+```json
 {"appVersion":"1.0.2","cbn":"","cfv":"","chak":"","chsi":"","creditAmount":6,"csak":"","dateExpire":"25/10/2026","description":"","detachDevices":false,"deviceId":"abc","fullName":"user name","id":"68d599741a0b23cafba698ea","ivit":"","kidp":"","model":"Phone","name":"username","password":"102030","product":"vbox86p","refId":"1234","role":"app","sdkVersion":"27"}
+```
 
 
 
@@ -235,101 +242,3 @@ A more full proof solution to this is playback/session entitlement monitoring en
 
 This case study shows the flaw of relying on client provided information. The server should always have the final say when it comes to enforcement. Proper concurrent session restriction is an ongoing issue that many industries are constantly trying to solve as exploiters are proactively comming up with better methods of bypassing them. Even though some companies accept the consequences that come with client side session enforcement, if not paired with some type of server side session monitoring, a skilled attacker can scale this vulnerability up fast to a high severity one.
 
-
-
-
-
-
-
-
-*(Describe the policy in plain language: “only one active session,” “one stream per subscription,” “kick other devices,” etc.)*
-
-The application aimed to:
-
-- …
-- …
-
-Users and stakeholders assumed the **device check** enforced **non-concurrent use** (fair sharing of seats, fraud prevention, contractual limits). That assumption failed when **binding material was forgeable, cloneable, or multi-instance**—the backend never maintained an authoritative **server-side session roster** tied to real authentication outcomes.
-
-## Background — where client-side binding goes wrong
-
-**Device binding** is reasonable **only** when something the server verifies cannot practically be cloned by JavaScript, DevTools, or a compromised endpoint. Common failure modes:
-
-| Misplaced trust | Why it fails |
-|-----------------|--------------|
-| Device ID in localStorage / cookies | Writable and copyable by anything with script access or disk access |
-| Client-generated “device fingerprint” as authorization | Fingerprints are hints for analytics, not cryptographic proof |
-| Trusting headers or client-sent flags (“`X-Trusted-Device: true`”) | Fully attacker-controlled in custom clients |
-
-*(Add your stack: SPA, native shell, hybrid app, etc.)*
-
-## Vulnerability — improper client-side device binding
-
-### Observable behavior
-
-*(Neutral description of what you saw: login steps, prompts, API calls, “manage devices,” kick-other-session UX.)*
-
-1. …
-2. …
-
-### Root cause
-
-**Concurrent session decisions** (allow / deny / revoke oldest) relied on **client-supplied or client-stored device assertions** instead of a **canonical server-side map** of active sessions per account or entitlement.
-
-Gaps typically included one or more of:
-
-- No **single source of truth** for “how many sessions are live right now”
-- **Device IDs** treated as stable seats but **mintable in parallel** (new profile, cleared storage, scripted clients)
-- **Kick or rotate** logic keyed off forgeable identifiers so **each client appeared as a different seat**
-
-In short: **the server trusted what the client claimed about “this device,”** so **parallel sessions did not collapse to the policy limit.**
-
-### Attack narrative
-
-*(Walk through a concrete sequence—still responsible disclosure tone if production.)*
-
-1. Legitimate user *(or test account)* establishes session A with device binding *(specify: cookie field, header, body param)* …
-2. Attacker establishes session B from *(another browser / VM / scripted client)* using *(fresh ID / cloned blob / omitted rotation token — specify)* …
-3. Server **does not invalidate A** when B attaches—or treats A and B as **different entitled devices**—so **both sessions remain usable concurrently** …
-
-**Impact:** *(concurrent use abuse—credential sharing, exceeded seats, revenue or licensing leakage—not framed as “takeover” unless you also proved hijack of an existing session)*
-
-## Constraints and scope
-
-*(What limited fixes at the time: legacy clients, third-party IdP, offline mode, etc.)*
-
-- …
-
-## Remediation — enforce concurrency on the server
-
-Prioritize controls **the attacker cannot mint from pure client manipulation**:
-
-1. **Authoritative session registry** — Persist each active session server-side (opaque session ID, issued at login); enforce **max concurrent sessions per account / SKU** by counting rows or tokens, not client hints.
-2. **Deterministic eviction** — On new login past the limit, **revoke** identified sessions (FIFO, LRU, or explicit “this device wins”) using **server-held IDs**, never a client-sent “old device id” alone.
-3. **Bind sessions to server-issued credentials** — Short-lived access tokens, rotation, and refresh binding tied to the server record—not a reproducible client fingerprint.
-4. **Never treat fingerprints or self-reported device IDs as proof of exclusivity** — Use for analytics or risk signals only; entitlement gates must use **server-side counts**.
-5. **Rate-limit and monitor** registration and session creation; alert on **parallel session growth** per account.
-
-*(Map each bullet to what you actually changed or recommended.)*
-
-## Verification
-
-*(How you proved the fix: negative tests, replay attempts, regression checklist.)*
-
-- …
-
-## Lessons learned
-
-- **Concurrent session policy is a server invariant**—the client can hint (“kick others”), but **only the backend** can count and revoke active sessions.
-- **“Different device” labels are free** unless backed by **non-cloneable secrets or attestation**; otherwise they do not prevent **N parallel browsers** each claiming to be “the” device.
-- Model **seat / stream limits** explicitly in threat reviews alongside login and MFA—not only account takeover.
-
-## References
-
-- OWASP — *(e.g. ASVS V2 / Session Management — link specific chapters)*  
-- NIST SP 800-63B — authenticators and replay resistance *(if applicable)*  
-- *(Vendor docs for IdP / WebAuthn)*  
-
----
-
-*Optional disclosure timeline / credits / CVE identifier if published.*

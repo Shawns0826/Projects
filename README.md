@@ -1,21 +1,47 @@
-# Writing portfolio
+# Projects
 
-Markdown-first layout for case studies and project write-ups. Publish from here to GitHub (`*.md` renders in the repo), GitHub Pages, or paste into [Hashnode](https://hashnode.com/) / other static hosts.
+Application security case studies and templates. The **live portfolio** is built with [**Jekyll**](https://jekyllrb.com/) and deployed to **GitHub Pages** via GitHub Actions.
 
-## Layout
+**Site (after Pages is enabled):** [https://shawns0826.github.io/Projects/](https://shawns0826.github.io/Projects/)
+
+## Repository layout
 
 | Path | Purpose |
 |------|---------|
-| `templates/` | Starter Markdown files—copy one into a new project folder and fill in |
-| `assets/images/` | Shared images (logo, diagrams you reuse across posts). Reference as `../../assets/images/filename.png` from a project folder |
-| `projects/<slug>/` | One folder per post or case study |
-| `projects/<slug>/post.md` | Main article (rename if your platform prefers `index.md`) |
-| `projects/<slug>/images/` | Images only for that piece. Reference as `./images/filename.png` from `post.md` |
+| `_case_studies/` | **Canonical published posts**—each `.md` file becomes a page on the site |
+| `_layouts/`, `assets/css/` | Theme (layouts + SCSS → CSS) |
+| `templates/` | Starters for Hashnode or drafts (excluded from the site build) |
+| `projects/` | Optional workspace for notes (excluded from the site build) |
 
-## Quick start
+## GitHub Pages setup
 
-1. Copy `templates/case-study.md` (or another template) into `projects/your-project-slug/post.md`.
-2. Add images under `projects/your-project-slug/images/`.
-3. Use relative paths so files stay portable: `./images/hero.png`.
+1. Repo → **Settings** → **Pages** → **Build and deployment** → Source: **GitHub Actions**.
+2. Push to `main`; the workflow `.github/workflows/jekyll-gh-pages.yml` builds with `github-pages` and deploys `_site`.
+3. Private repos need a GitHub plan that includes Pages for private repositories.
 
-See `projects/authentication-bypass-client-side-device-binding/post.md` for the first published case study.
+## Local preview (optional)
+
+Requires Ruby + Bundler:
+
+```bash
+bundle install
+bundle exec jekyll serve
+```
+
+Open `http://127.0.0.1:4000/Projects/` (include `/Projects` baseurl).
+
+## Adding a case study
+
+Create `_case_studies/your-slug.md` with YAML front matter at the top, for example:
+
+```yaml
+---
+title: "Your title"
+description: "One-line summary for cards and SEO."
+tags:
+  - security
+date: 2026-05-10
+---
+```
+
+Body uses normal Markdown; fenced code blocks get syntax highlighting via Rouge.

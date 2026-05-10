@@ -8,3 +8,10 @@ Thumbs.db
 
 # Optional: large exports / local drafts
 *.pdf
+
+# Jekyll
+_site/
+.sass-cache/
+.jekyll-cache/
+vendor/
+.bundle/

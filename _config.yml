@@ -1,0 +1,40 @@
+title: "Security writing"
+tagline: "Application security case studies"
+description: "Technical case studies and notes on AppSec, mobile reverse engineering, and defensive design."
+url: "https://shawns0826.github.io"
+baseurl: "/Projects"
+
+markdown: kramdown
+highlighter: rouge
+permalink: pretty
+encoding: utf-8
+
+sass:
+  style: compressed
+
+collections:
+  case_studies:
+    output: true
+    permalink: /case-studies/:name/
+
+defaults:
+  - scope:
+      path: ""
+      type: "case_studies"
+    values:
+      layout: "case_study"
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - assets/README.md
+  - templates
+  - projects
+  - vendor
+  - node_modules

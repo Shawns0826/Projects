@@ -1,0 +1,51 @@
+---
+layout: default
+---
+<section class="hero">
+  <div class="hero__inner">
+    <p class="hero__eyebrow">Portfolio</p>
+    <h1 class="hero__title">{{ site.title }}</h1>
+    {% if site.tagline %}<p class="hero__subtitle">{{ site.tagline }}</p>{% endif %}
+    {% if site.description %}<p class="hero__lead">{{ site.description }}</p>{% endif %}
+    <div class="hero__actions">
+      <a href="#case-studies" class="btn btn--primary">Read case studies</a>
+      <a href="https://github.com/Shawns0826/Projects" class="btn btn--ghost" target="_blank" rel="noopener">View source</a>
+    </div>
+  </div>
+</section>
+
+<section id="case-studies" class="listing">
+  <div class="listing__inner">
+    <header class="listing__header">
+      <h2 class="listing__title">Case studies</h2>
+      <p class="listing__intro">Deep dives into real assessments—how issues were found, why they matter, and how to fix them.</p>
+    </header>
+
+    {% assign studies = site.case_studies | sort: "date" | reverse %}
+    <ul class="card-grid" role="list">
+      {% for study in studies %}
+      <li>
+        <article class="card">
+          <a class="card__link" href="{{ study.url | relative_url }}">
+            <span class="card__kicker">{{ study.date | date: "%b %-d, %Y" }}</span>
+            <h3 class="card__title">{{ study.title }}</h3>
+            {% if study.description %}<p class="card__desc">{{ study.description }}</p>{% endif %}
+            {% if study.tags %}
+            <ul class="card__tags" aria-label="Topics">
+              {% for tag in study.tags %}
+              <li>{{ tag }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+            <span class="card__cta">Read analysis →</span>
+          </a>
+        </article>
+      </li>
+      {% endfor %}
+    </ul>
+
+    {% if studies.size == 0 %}
+    <p class="listing__empty">No published case studies yet.</p>
+    {% endif %}
+  </div>
+</section>
