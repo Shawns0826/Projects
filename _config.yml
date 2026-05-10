@@ -12,6 +12,14 @@ encoding: utf-8
 sass:
   style: compressed
 
+# Defined series (homepage groups posts by matching `series:` slug on each case study).
+# Posts without `series` appear under "Standalone writing".
+writing_series:
+  - slug: broken-trust-client-controls
+    title: "Broken Trust: Client-Side Controls"
+    description: "Read in order or standalone—essays on client-supplied identity, enforcement, and server-side authority."
+    parts_planned: 4
+
 collections:
   case_studies:
     output: true

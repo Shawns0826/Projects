@@ -1,4 +1,4 @@
----
+﻿---
 layout: case_study
 title: "Concurrent Session Restriction Bypass via Improper Client-Side Device Binding"
 description: "Case study on trusting client-supplied device identity for concurrent session enforcement—and how that breaks under reverse engineering."
@@ -9,6 +9,8 @@ tags:
   - owasp
 date: 2026-05-10
 featured: true
+series: broken-trust-client-controls
+series_order: 1
 ---
 
 **Case study in broken trust of client-side security controls**

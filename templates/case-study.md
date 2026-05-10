@@ -6,6 +6,9 @@ tags:
   - case-study
   - engineering
 draft: true
+# Jekyll site (_case_studies/): optional series — register slug under writing_series in _config.yml
+# series: broken-trust-client-controls
+# series_order: 2
 # Hashnode: set published: false until ready. GitHub-only: you can delete this frontmatter block.
 ---
 

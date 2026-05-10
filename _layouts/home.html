@@ -8,44 +8,138 @@ layout: default
     {% if site.tagline %}<p class="hero__subtitle">{{ site.tagline }}</p>{% endif %}
     {% if site.description %}<p class="hero__lead">{{ site.description }}</p>{% endif %}
     <div class="hero__actions">
-      <a href="#case-studies" class="btn btn--primary">Read case studies</a>
+      <a href="#writing" class="btn btn--primary">Browse writing</a>
       <a href="https://github.com/Shawns0826/Projects" class="btn btn--ghost" target="_blank" rel="noopener">View source</a>
     </div>
   </div>
 </section>
 
-<section id="case-studies" class="listing">
+<section id="writing" class="listing listing--writing">
   <div class="listing__inner">
     <header class="listing__header">
-      <h2 class="listing__title">Case studies</h2>
-      <p class="listing__intro">Deep dives into real assessments—how issues were found, why they matter, and how to fix them.</p>
+      <h2 class="listing__title">Writing</h2>
+      <p class="listing__intro">Series can be read in order or on their own. Everything else lives under standalone articles.</p>
     </header>
 
-    {% assign studies = site.case_studies | sort: "date" | reverse %}
-    <ul class="card-grid" role="list">
-      {% for study in studies %}
-      <li>
-        <article class="card">
-          <a class="card__link" href="{{ study.url | relative_url }}">
-            <span class="card__kicker">{{ study.date | date: "%b %-d, %Y" }}</span>
-            <h3 class="card__title">{{ study.title }}</h3>
-            {% if study.description %}<p class="card__desc">{{ study.description }}</p>{% endif %}
-            {% if study.tags %}
-            <ul class="card__tags" aria-label="Topics">
-              {% for tag in study.tags %}
-              <li>{{ tag }}</li>
+    {% if site.writing_series %}
+    {% for ser in site.writing_series %}
+      {% assign in_series = site.case_studies | where: "series", ser.slug | sort: "series_order" %}
+      {% if in_series.size > 0 %}
+      <section id="series-{{ ser.slug }}" class="series-block" aria-labelledby="series-title-{{ ser.slug }}">
+        <header class="series-block__header">
+          <p class="series-block__label">Series</p>
+          <h3 id="series-title-{{ ser.slug }}" class="series-block__title">{{ ser.title }}</h3>
+          {% if ser.description %}<p class="series-block__desc">{{ ser.description }}</p>{% endif %}
+          {% if ser.parts_planned %}
+          <p class="series-block__progress">{{ in_series.size }} published · {{ ser.parts_planned }} parts planned</p>
+          {% endif %}
+        </header>
+        <ul class="card-grid card-grid--series" role="list">
+          {% for study in in_series %}
+          <li>
+            <article class="card card--series">
+              <a class="card__link" href="{{ study.url | relative_url }}">
+                {% if study.series_order %}
+                <span class="card__part">Part {{ study.series_order }}{% if ser.parts_planned %} / {{ ser.parts_planned }}{% endif %}</span>
+                {% endif %}
+                <span class="card__kicker">{{ study.date | date: "%b %-d, %Y" }}</span>
+                <h4 class="card__title">{{ study.title }}</h4>
+                {% if study.description %}<p class="card__desc">{{ study.description }}</p>{% endif %}
+                {% if study.tags %}
+                <ul class="card__tags" aria-label="Topics">
+                  {% for tag in study.tags %}
+                  <li>{{ tag }}</li>
+                  {% endfor %}
+                </ul>
+                {% endif %}
+                <span class="card__cta">Read →</span>
+              </a>
+            </article>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+    {% endfor %}
+    {% endif %}
+
+    {% assign grouped_series = site.case_studies | group_by: "series" %}
+    {% for group in grouped_series %}
+      {% assign slug = group.name %}
+      {% if slug != "" %}
+        {% assign configured = site.writing_series | where: "slug", slug | first %}
+        {% unless configured %}
+          {% assign items = group.items | sort: "series_order" %}
+          <section id="series-{{ slug }}" class="series-block series-block--orphan" aria-labelledby="orphan-series-{{ slug }}">
+            <header class="series-block__header">
+              <p class="series-block__label">Series</p>
+              <h3 id="orphan-series-{{ slug }}" class="series-block__title">{{ slug }}</h3>
+              <p class="series-block__desc">Posts share this <code>series</code> slug but there is no matching entry under <code>writing_series</code> in <code>_config.yml</code>. Add one to show a friendly title and description on the homepage.</p>
+            </header>
+            <ul class="card-grid card-grid--series" role="list">
+              {% for study in items %}
+              <li>
+                <article class="card card--series">
+                  <a class="card__link" href="{{ study.url | relative_url }}">
+                    {% if study.series_order %}
+                    <span class="card__part">Part {{ study.series_order }}</span>
+                    {% endif %}
+                    <span class="card__kicker">{{ study.date | date: "%b %-d, %Y" }}</span>
+                    <h4 class="card__title">{{ study.title }}</h4>
+                    {% if study.description %}<p class="card__desc">{{ study.description }}</p>{% endif %}
+                    {% if study.tags %}
+                    <ul class="card__tags" aria-label="Topics">
+                      {% for tag in study.tags %}
+                      <li>{{ tag }}</li>
+                      {% endfor %}
+                    </ul>
+                    {% endif %}
+                    <span class="card__cta">Read →</span>
+                  </a>
+                </article>
+              </li>
               {% endfor %}
             </ul>
-            {% endif %}
-            <span class="card__cta">Read analysis →</span>
-          </a>
-        </article>
-      </li>
-      {% endfor %}
-    </ul>
+          </section>
+        {% endunless %}
+      {% endif %}
+    {% endfor %}
 
-    {% if studies.size == 0 %}
-    <p class="listing__empty">No published case studies yet.</p>
+    {% assign standalone = site.case_studies | where_exp: "item", "item.series == blank" | sort: "date" | reverse %}
+    {% if standalone.size > 0 %}
+    <section id="standalone-writing" class="series-block series-block--standalone" aria-labelledby="standalone-writing-title">
+      <header class="series-block__header">
+        <p class="series-block__label">Standalone</p>
+        <h3 id="standalone-writing-title" class="series-block__title">Other articles</h3>
+        <p class="series-block__desc">One-off case studies and posts outside any numbered sequence.</p>
+      </header>
+      <ul class="card-grid" role="list">
+        {% for study in standalone %}
+        <li>
+          <article class="card">
+            <a class="card__link" href="{{ study.url | relative_url }}">
+              <span class="card__kicker">{{ study.date | date: "%b %-d, %Y" }}</span>
+              <h4 class="card__title">{{ study.title }}</h4>
+              {% if study.description %}<p class="card__desc">{{ study.description }}</p>{% endif %}
+              {% if study.tags %}
+              <ul class="card__tags" aria-label="Topics">
+                {% for tag in study.tags %}
+                <li>{{ tag }}</li>
+                {% endfor %}
+              </ul>
+              {% endif %}
+              <span class="card__cta">Read →</span>
+            </a>
+          </article>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% assign total = site.case_studies.size %}
+    {% if total == 0 %}
+    <p class="listing__empty">No published writing yet.</p>
     {% endif %}
   </div>
 </section>

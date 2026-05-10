@@ -1,10 +1,37 @@
 ---
 layout: default
 ---
+{% assign series_meta = nil %}
+{% assign siblings = empty | split: "" %}
+{% assign prev_post = nil %}
+{% assign next_post = nil %}
+{% if page.series %}
+  {% assign series_meta = site.writing_series | where: "slug", page.series | first %}
+  {% assign siblings = site.case_studies | where: "series", page.series | sort: "series_order" %}
+  {% assign prev_ord = page.series_order | minus: 1 %}
+  {% assign next_ord = page.series_order | plus: 1 %}
+  {% assign prev_post = site.case_studies | where_exp: "item", "item.series == page.series and item.series_order == prev_ord" | first %}
+  {% assign next_post = site.case_studies | where_exp: "item", "item.series == page.series and item.series_order == next_ord" | first %}
+{% endif %}
+
 <article class="case-study">
   <header class="case-study__hero">
     <div class="case-study__hero-inner">
+      {% if series_meta %}
+      <p class="case-study__eyebrow">
+        <a href="{{ '/' | relative_url }}#series-{{ page.series }}">{{ series_meta.title }}</a>
+        {% if page.series_order %}
+        <span class="case-study__eyebrow-part"> · Part {{ page.series_order }}{% if series_meta.parts_planned %} of {{ series_meta.parts_planned }}{% endif %}</span>
+        {% endif %}
+      </p>
+      {% elsif page.series %}
+      <p class="case-study__eyebrow">
+        <a href="{{ '/' | relative_url }}#series-{{ page.series }}">Series: {{ page.series }}</a>
+        {% if page.series_order %}<span class="case-study__eyebrow-part"> · Part {{ page.series_order }}</span>{% endif %}
+      </p>
+      {% else %}
       <p class="case-study__eyebrow">Case study</p>
+      {% endif %}
       <h1 class="case-study__title">{{ page.title }}</h1>
       {% if page.description %}<p class="case-study__deck">{{ page.description }}</p>{% endif %}
       <div class="case-study__meta">
@@ -16,11 +43,43 @@ layout: default
         </ul>
         {% endif %}
       </div>
-      <a class="case-study__back" href="{{ '/' | relative_url }}#case-studies">← All case studies</a>
+      <div class="case-study__back-row">
+        <a class="case-study__back" href="{{ '/' | relative_url }}#writing">← Writing overview</a>
+        {% if page.series %}
+        <a class="case-study__back case-study__back--jump" href="{{ '/' | relative_url }}#series-{{ page.series }}">Jump to series ↓</a>
+        {% endif %}
+      </div>
     </div>
   </header>
 
   <div class="case-study__body prose">
     {{ content }}
   </div>
+
+  {% if page.series and siblings.size > 1 %}
+  <nav class="series-nav" aria-label="Series navigation">
+    {% if prev_post %}
+    <a class="series-nav__link series-nav__link--prev" href="{{ prev_post.url | relative_url }}">
+      <span class="series-nav__dir">Previous</span>
+      <span class="series-nav__title">{{ prev_post.title }}</span>
+    </a>
+    {% else %}
+    <span class="series-nav__link series-nav__link--prev series-nav__link--disabled">
+      <span class="series-nav__dir">Previous</span>
+      <span class="series-nav__title">Start of series</span>
+    </span>
+    {% endif %}
+    {% if next_post %}
+    <a class="series-nav__link series-nav__link--next" href="{{ next_post.url | relative_url }}">
+      <span class="series-nav__dir">Next</span>
+      <span class="series-nav__title">{{ next_post.title }}</span>
+    </a>
+    {% else %}
+    <span class="series-nav__link series-nav__link--next series-nav__link--disabled">
+      <span class="series-nav__dir">Next</span>
+      <span class="series-nav__title">Latest published</span>
+    </span>
+    {% endif %}
+  </nav>
+  {% endif %}
 </article>

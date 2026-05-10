@@ -9,6 +9,7 @@ Application security case studies and templates. The **live portfolio** is built
 | Path | Purpose |
 |------|---------|
 | `_case_studies/` | **Canonical published posts**—each `.md` file becomes a page on the site |
+| `_config.yml` | **`writing_series`** defines titled groups on the homepage; each post can opt in with `series` + `series_order` |
 | `_layouts/`, `assets/css/` | Theme (layouts + SCSS → CSS) |
 | `templates/` | Starters for Hashnode or drafts (excluded from the site build) |
 | `projects/` | Optional workspace for notes (excluded from the site build) |
@@ -45,3 +46,9 @@ date: 2026-05-10
 ```
 
 Body uses normal Markdown; fenced code blocks get syntax highlighting via Rouge.
+
+## Series vs standalone
+
+- **Numbered sequence** (e.g. four related essays): add an entry under `writing_series` in `_config.yml` (`slug`, `title`, `description`, optional `parts_planned`). On each post in that sequence set matching `series: <slug>` and **integer** `series_order: 1` (then `2`, `3`, …). They render together under **Series** with Part badges and prev/next links.
+- **Unrelated posts**: omit `series` entirely—they appear under **Standalone · Other articles** only.
+- If you set `series` on a post but forget a `writing_series` row, the site still lists those posts under a fallback block with a reminder to register the slug in `_config.yml`.
