@@ -47,6 +47,8 @@ date: 2026-05-10
 
 Body uses normal Markdown; fenced code blocks get syntax highlighting via Rouge.
 
+**Dates:** `_config.yml` sets **`future: true`** so posts with a **`date:`** in the future still appear on the site (Jekyll’s default is to hide them until that calendar day in UTC).
+
 ## Series vs standalone
 
 - **Numbered sequence** (e.g. four related essays): add an entry under `writing_series` in `_config.yml` (`slug`, `title`, `description`, optional `parts_planned`). On each post in that sequence set matching `series: <slug>` and **integer** `series_order: 1` (then `2`, `3`, …). They render together under **Series** with Part badges and prev/next links.

@@ -9,6 +9,9 @@ highlighter: rouge
 permalink: pretty
 encoding: utf-8
 
+# Include collection docs dated in the future (otherwise `site.case_studies` is empty until that date).
+future: true
+
 sass:
   style: compressed
 
