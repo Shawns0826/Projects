@@ -693,6 +693,55 @@ body.site {
   font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace;
 }
 
+/* Collapsible fenced blocks (see assets/js/collapsible-code.js) */
+.code-collapse {
+  margin: 1.25rem 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--code-bg);
+  overflow: hidden;
+}
+
+.code-collapse__summary {
+  list-style: none;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+  background: rgba(94, 234, 212, 0.06);
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+}
+
+.code-collapse__summary::-webkit-details-marker {
+  display: none;
+}
+
+.code-collapse__summary::before {
+  content: "";
+  display: inline-block;
+  width: 0.45em;
+  margin-right: 0.5em;
+  transform: translateY(-0.06em);
+  border-left: 0.35em solid var(--muted);
+  border-top: 0.22em solid transparent;
+  border-bottom: 0.22em solid transparent;
+  transition: transform 0.15s ease;
+}
+
+.code-collapse[open] > .code-collapse__summary::before {
+  transform: rotate(90deg) translate(-0.05em, 0.02em);
+}
+
+.code-collapse .highlight {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+}
+
 .not-found {
   text-align: center;
   padding: 4rem 1rem;
