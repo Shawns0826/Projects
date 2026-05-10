@@ -1,8 +1,9 @@
 ---
 layout: default
 ---
+{% comment %}Sentinel must never match a real `series` slug (GitHub Liquid has no reliable empty-array literal).{% endcomment %}
 {% assign series_meta = nil %}
-{% assign siblings = empty | split: "" %}
+{% assign siblings = site.case_studies | where: "series", "__series_nav_sentinel__" %}
 {% assign prev_post = nil %}
 {% assign next_post = nil %}
 {% if page.series %}

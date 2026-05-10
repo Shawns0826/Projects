@@ -105,7 +105,13 @@ layout: default
       {% endif %}
     {% endfor %}
 
-    {% assign standalone = site.case_studies | where_exp: "item", "item.series == blank" | sort: "date" | reverse %}
+    {% assign __gb = site.case_studies | group_by: "series" %}
+    {% assign standalone = site.case_studies | where: "series", "__standalone_sentinel__" %}
+    {% for g in __gb %}
+      {% if g.name == blank %}
+        {% assign standalone = g.items | sort: "date" | reverse %}
+      {% endif %}
+    {% endfor %}
     {% if standalone.size > 0 %}
     <section id="standalone-writing" class="series-block series-block--standalone" aria-labelledby="standalone-writing-title">
       <header class="series-block__header">
