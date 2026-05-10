@@ -11,8 +11,11 @@ layout: default
   {% assign siblings = site.case_studies | where: "series", page.series | sort: "series_order" %}
   {% assign prev_ord = page.series_order | minus: 1 %}
   {% assign next_ord = page.series_order | plus: 1 %}
-  {% assign prev_post = site.case_studies | where_exp: "item", "item.series == page.series and item.series_order == prev_ord" | first %}
-  {% assign next_post = site.case_studies | where_exp: "item", "item.series == page.series and item.series_order == next_ord" | first %}
+  {% comment %}Liquid 4 where_exp rejects compound conditions with `and`; iterate sorted siblings instead.{% endcomment %}
+  {% for s in siblings %}
+    {% if s.series_order == prev_ord %}{% assign prev_post = s %}{% endif %}
+    {% if s.series_order == next_ord %}{% assign next_post = s %}{% endif %}
+  {% endfor %}
 {% endif %}
 
 <article class="case-study">
