@@ -1,32 +1,26 @@
 ---
 layout: case_study
-title: "Concurrent Session Restriction Bypass via Improper Client-Side Device Binding"
+title: "Single Session Enforcement Bypass: A Case Study On Client-Side Enforcement"
 description: "Case study on trusting client-supplied device identity for concurrent session enforcement—and how that breaks under reverse engineering."
 tags:
-  - security
-  - authentication
-  - case-study
-  - owasp
+  - Reverse Engineering
+  - Application Security
+  - Android Security
+  - Traffic Interception
 date: 2026-05-07
 featured: true
 series: mitm-exploit
 series_order: 1
 ---
 
-**Case study in broken trust of client-side security controls**
+**Case study in trust of client-side security controls**
 
-**Role:** *(your role — e.g. Security researcher / Red team / AppSec engineer)*  
-**Context:** *(product type, environment — lab / coordinated disclosure / internal assessment)*  
-**Timeline:** *(Month Year — Month Year)*  
-**Severity:** *(e.g. Medium–High — concurrent entitlement abuse: policy intended one active session/seat; multiple sessions remained valid in parallel)*  
 
-<!-- Optional hero when you add artwork under ./images/
-![Threat model or flow](./images/attack-flow.png)
--->
+
 
 ## Executive summary
 
-The business incentive for concurrent session restriction is obvious. Streaming services, SaaS platforms, gaming subscriptions, VPN vendors,cruise line wifi packages, ect, rely on selling subscriptions for revenue. Sharing subscriptions with others who have not paid for the service is an attack on the business model of the service itself. This is why various methods are implemented to try and prevent concurrent sessions(IP geofencing, rate limiting, account level tracking, ect). This case study dives into a concurrent session restriction vulnerability that was found during an audit. The case study will go over how the vulnerability was discovered, impact, and remediation. All data has been anonymized.
+The business incentive for account-sharing prevention is obvious. Streaming services, SaaS platforms, gaming subscriptions, VPN vendors,cruise line wifi packages, etc, rely on selling subscriptions for revenue. Sharing subscriptions with others who have not paid for the service is an attack on the business model of the service itself. This is why various methods are implemented to try and prevent concurrent sessions(IP geofencing, rate limiting, account level tracking, etc). This case study dives into a session enforcement vulnerability that was found during an audit. The case study will go over how the vulnerability was discovered, impact, and remediation. All data has been anonymized.
 
 
 ## Application Context
@@ -34,13 +28,13 @@ The business incentive for concurrent session restriction is obvious. Streaming 
 The application in question is an android TV/Mobile app(APK) that distributes digital media for an annual subscription. After a user has been authenticated and provided a JWT, a client provided deviceid is then sent to the server and stored to a database. If another person attempts to log in with the same account but through a different device, the server compares the deviceid's and kicks the first user out of their session. The intended goal here is to enforce one session at a time. This is to discourage account sharing. The application did not implement any type of enforcement via IP geofencing or rate limiting. Hence, this mechanism of checking the deviceid was the only intel the server had for enforcing 1 concurrent session.
 
 ## Vulnerability Overview
-The flaw with this design is trusting client provided information. In application security, it is good practice to always treat client provided parameters as malicious or modified. This is due to how easy it is for an attacker to malipulate the client parameters via reverse engineering and/or intercepting and manipulating https traffic via a tool like burp. The deviceid provided by the client can easily be modified, allowing a user to spoof it and share their account with multiple people, bypassing concurrent session restriction.
+The flaw with this design is trusting client provided information. In application security, it is good practice to always treat client provided parameters as malicious or modified. This is due to how easy it is for an attacker to manipulate the client parameters via reverse engineering and/or intercepting and manipulating https traffic via a tool like burp. The deviceid provided by the client can easily be modified, allowing a user to spoof it and share their account with multiple people, bypassing session enforcement.
 
 
 ## Technical Analysis and exploitation
 The tools needed for this exploitation are a rooted android emulator with burp, apktools for disassembling the APK into smali and rebuilding it, and optionally JADX for decompiling the APK into readable Java code.
 
-To begin with, the application has root detection.This needs to be bypassed so that we can run the application on our rooted device withburp to monitor and manipulate network traffic. Because the application does not use Google Play Integrity attestation, we can simply utilize reverse engineering to bypass this.  After disassembling the apk into editable smali using apktools, we can grep through the code base and look for where root detection is enforced and bypass it. We find this sole method responsible for root detection.
+To begin with, the application has root detection. This needs to be bypassed so that we can run the application on our rooted device with burp/mitmproxy to monitor and manipulate network traffic. Because the application does not use Google Play Integrity attestation, we can simply utilize reverse engineering to bypass this.  After disassembling the apk into editable smali using apktools, we can grep through the code base and look for where root detection is enforced and bypass it. We find this sole method responsible for root detection.
 
 ```smali
 .method public static isDeviceRooted()Z
@@ -108,7 +102,7 @@ Now the method can simply be rewritten as:
 
 Now that this simple root detection has been bypassed,it is now time to sign and install the cracked client into our rooted device and we are ready to begin exploitation.
 
-(It is important to note that there are various ways to make root detection bypass much more difficult which can slow down an attacker such as using play integrity attestation, native code, server side anomoly scoring ect. Even then, anything ran on a attacker controlled device can eventually be hooked or bypassed. This is why in Application security, it is good practice to always assume the client is compromised.)
+(It is important to note that there are various ways to make root detection bypass much more difficult which can slow down an attacker such as using play integrity attestation, native code, server side anomaly scoring etc. Even then, anything ran on a attacker controlled device can eventually be hooked or bypassed. This is why in Application security, it is good practice to always assume the client is compromised.)
 
 Exact parameter values have been anonymized.
 
@@ -124,7 +118,7 @@ The important part of the JSON payload to pay attention to is the deviceId field
 {"message":"User assigned to another device. Are you sure you want to unlink the device? You will need to sign in again."}
 ```
 
-If the user clicks OK, the previuous users session is ended and our current user can now start their session. Their deviceiD now replaces the previous deviceId in the database.
+If the user clicks OK, the previous users session is ended and our current user can now start their session. Their deviceiD now replaces the previous deviceId in the database.
 
 
 Now lets grep through the client and see which method is responsible for returning the deviceId. We find this smali method:
@@ -227,14 +221,14 @@ and after building and signing, their new patched client now returns the same ha
 
 
 ## Business Impact
-What was achieved here and why would this matter to the victim? Now, this patched client can be distributed to others, and each device using this patched client will send the same deviceId to the server. Concurrent session restriction has comepletely been bypassed now that the server has no way of telling one device from another. This leads to a direct attack on the business model of the victum as they rely on subscriptions in order to operate. If this method were to leak online, multiple people could take advantage of this bypass leading to significant revenue loss for the victim company. 
+What was achieved here and why would this matter to the victim? Now, this patched client can be distributed to others, and each device using this patched client will send the same deviceId to the server. Concurrent session restriction has comepletely been bypassed now that the server has no way of telling one device from another. This leads to a direct attack on the business model of the victim as they rely on subscriptions in order to operate. If this method were to leak online, multiple people could take advantage of this bypass leading to significant revenue loss for the victim company. 
 
-Most bug bounty programs and audits would consider this a low impact vulnerability. Some companies even consider this an acceptable side affect due to relying on only client side session enforcement. However, a skilled attacker can chain this vulnerability with other technologies to scale the exploitation by directly siphoning revenue from the company themselves, turning this otherwise low to medium impact vulnerability into high impact fast.
+Most bug bounty programs and audits would consider this a low impact vulnerability. Some companies even consider this an acceptable side affect due to relying on only client side session enforcement. However, a skilled attacker can chain this vulnerability with other technologies to scale the exploitation by directly siphoning revenue from the company themselves, turning this otherwise low impact vulnerability into high impact fast. See [Reverse Proxy MITM: Escalating Weak Session Enforcement to Critical]({% link _case_studies/reverse-proxy-mitm-demonstration.md %}).
 
 ## Remediation
  
 
- A potential solution to this is implementing google play attestation. This would make using patched/modified clients impossible and thus, users would be forced to use a sincere client when sending request to the server. However it is important to note that while attestation helps, this is not a full proof solution. An advanced attacker can still set up a proxy inbetween the real client, manipulating payloads in real time(such as sending a static deviceId). If multiple people are ralying through the same proxy, again they can trick the server into thinking that they are all one device.
+ A potential solution to this is implementing google play attestation. This would make using patched/modified clients impossible and thus, users would be forced to use a sincere client when sending request to the server. However it is important to note that while attestation helps, this is not a fullproof solution. An advanced attacker can still set up a proxy inbetween the real client, manipulating payloads in real time(such as sending a static deviceId). If multiple people are ralying through the same proxy, again they can trick the server into thinking that they are all one device.
 
 A more full proof solution to this is playback/session entitlement monitoring enforced server-side. Enforcing session not just during log in but also when media is consumed itself. The backend should always be the final authority and validate every time it issues playback manifest, stream tokens, or media licenses. This active server side monitoring can check if for example, the same user is trying to watch 2 different videos at the same time.
 
@@ -242,5 +236,5 @@ A more full proof solution to this is playback/session entitlement monitoring en
 
 ## Conclusion
 
-This case study shows the flaw of relying on client provided information. The server should always have the final say when it comes to enforcement. Proper concurrent session restriction is an ongoing issue that many industries are constantly trying to solve as exploiters are proactively comming up with better methods of bypassing them. Even though some companies accept the consequences that come with client side session enforcement, if not paired with some type of server side session monitoring, a skilled attacker can scale this vulnerability up fast to a high severity one.
+This case study shows the flaw of relying on client provided information. The server should always have the final say when it comes to enforcement. Proper concurrent session restriction is an ongoing issue that many industries are constantly trying to solve as exploiters are proactively coming up with better methods of bypassing them. Even though some companies accept the consequences that come with client side session enforcement, if not paired with some type of server side session monitoring, a skilled attacker can scale this vulnerability up to a high severity one. See [Reverse Proxy MITM: Escalating Weak Session Enforcement to Critical]({% link _case_studies/reverse-proxy-mitm-demonstration.md %}).
 
