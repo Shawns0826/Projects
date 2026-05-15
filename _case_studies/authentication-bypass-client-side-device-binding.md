@@ -5,7 +5,7 @@ description: "Case study on trusting client-supplied device identity for concurr
 tags:
   - Reverse Engineering
   - Application Security
-  - Android Security
+  - Proxy
   - Traffic Interception
 date: 2026-05-07
 featured: true
@@ -223,7 +223,7 @@ and after building and signing, their new patched client now returns the same ha
 ## Business Impact
 What was achieved here and why would this matter to the victim? Now, this patched client can be distributed to others, and each device using this patched client will send the same deviceId to the server. Concurrent session restriction has comepletely been bypassed now that the server has no way of telling one device from another. This leads to a direct attack on the business model of the victim as they rely on subscriptions in order to operate. If this method were to leak online, multiple people could take advantage of this bypass leading to significant revenue loss for the victim company. 
 
-Most bug bounty programs and audits would consider this a low impact vulnerability. Some companies even consider this an acceptable side affect due to relying on only client side session enforcement. However, a skilled attacker can chain this vulnerability with other technologies to scale the exploitation by directly siphoning revenue from the company themselves, turning this otherwise low impact vulnerability into high impact fast. See [Reverse Proxy MITM: Escalating Weak Session Enforcement to Critical]({% link _case_studies/reverse-proxy-mitm-demonstration.md %}).
+Most bug bounty programs and audits would consider this a low impact vulnerability. Some companies even consider this an acceptable side affect due to relying on only client side session enforcement. However, a skilled attacker can chain this vulnerability with other technologies to scale the exploitation by directly siphoning revenue from the company themselves, turning this otherwise low impact vulnerability into high impact fast. See [Reverse Proxy MITM: Escalating Weak Session Enforcement to Critical]({{ '/case-studies/reverse-proxy-mitm-demonstration/' | relative_url }}).
 
 ## Remediation
  
@@ -236,5 +236,5 @@ A more full proof solution to this is playback/session entitlement monitoring en
 
 ## Conclusion
 
-This case study shows the flaw of relying on client provided information. The server should always have the final say when it comes to enforcement. Proper concurrent session restriction is an ongoing issue that many industries are constantly trying to solve as exploiters are proactively coming up with better methods of bypassing them. Even though some companies accept the consequences that come with client side session enforcement, if not paired with some type of server side session monitoring, a skilled attacker can scale this vulnerability up to a high severity one. See [Reverse Proxy MITM: Escalating Weak Session Enforcement to Critical]({% link _case_studies/reverse-proxy-mitm-demonstration.md %}).
+This case study shows the flaw of relying on client provided information. The server should always have the final say when it comes to enforcement. Proper concurrent session restriction is an ongoing issue that many industries are constantly trying to solve as exploiters are proactively coming up with better methods of bypassing them. Even though some companies accept the consequences that come with client side session enforcement, if not paired with some type of server side session monitoring, a skilled attacker can scale this vulnerability up to a high severity one. See [Reverse Proxy MITM: Escalating Weak Session Enforcement to Critical]({{ '/case-studies/reverse-proxy-mitm-demonstration/' | relative_url }}).
 

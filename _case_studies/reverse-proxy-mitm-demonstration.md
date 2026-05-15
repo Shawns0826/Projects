@@ -1,4 +1,5 @@
 ---
+layout: case_study
 title: "Reverse Proxy MITM: Escalating Weak Session Enforcement to Critical"
 description: "How a reverse-engineered client plus a reverse proxy can turn low-severity session bypass into unauthorized monetization of upstream media—distinct from classic phishing MITM."
 tags:
@@ -23,7 +24,7 @@ The proxy presents itself as a standalone service that independently handles reg
 
 Although rare, this specific attack has been known to happen.
 
-Any app that has weak concurrent session restrictions and no attestation enforcement is susceptible to this attack. This specific demonstration builds off the [previous case study]({% link _case_studies/authentication-bypass-client-side-device-binding.md %}), in which we did a case study on a weak concurrent session restriction found during an audit. Now that we can have one session being used by multiple people, let’s see exactly how a capable attacker can implement this attack.
+Any app that has weak concurrent session restrictions and no attestation enforcement is susceptible to this attack. This specific demonstration builds off the [previous case study]({{ '/case-studies/authentication-bypass-client-side-device-binding/' | relative_url }}), in which we did a case study on a weak concurrent session restriction found during an audit. Now that we can have one session being used by multiple people, let’s see exactly how a capable attacker can implement this attack.
 
 Through reverse engineering, an attacker has full control over the client. We assume they would disassemble the app using Apktool and grep for `url`. The following method would be discovered.
 
