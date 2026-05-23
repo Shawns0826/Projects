@@ -20,16 +20,7 @@ Each user is a node in the subtree and can only manage users under their local t
 
 ![Subtree hierarchy and role relationships]({{ "/assets/images/rbac-admin-panel-hierarchy.png" | relative_url }})
 
-The user model stores role and parent/child relationships that define the tree:
-
-```python
-# models.py (lines 24–25, 38–39)
-role = db.Column(db.String(20), nullable=False, default='customer')  # rootadmin, admin, reseller, customer
-parent_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-children = db.relationship('User', backref=db.backref('parent', remote_side=[id]))
-```
-
-Subtree authorization is enforced in `can_manage_user()` and `is_in_hierarchy()`:
+The `User` model stores `role` and `parent_id` / `children` relationships that define the tree. Subtree authorization is enforced in `can_manage_user()` and `is_in_hierarchy()`:
 
 ```python
 # models.py (lines 76–106)
@@ -57,37 +48,11 @@ def is_in_hierarchy(self, target_user):
     return False
 ```
 
-The panel only lists users the viewer is allowed to manage:
-
-```python
-# routes.py (~142–162)
-def users_visible_in_panel(viewer: User) -> list:
-    if viewer.role == "rootadmin":
-        return User.query.order_by(User.username).all()
-    desc_ids = _descendant_user_ids(viewer.id)
-    candidates = User.query.filter(User.id.in_(desc_ids)).order_by(User.username).all()
-    return [u for u in candidates if viewer.can_manage_user(u)]
-```
+The panel lists only users the viewer may manage via `users_visible_in_panel()`, which filters descendants through `can_manage_user()` (root admin sees everyone).
 
 ## Root admin bootstrap
 
-To create the tree securely, we utilize environment variables during bootstrapping to create the root admin. Root admin credentials are implemented through env variables rather than being hard coded into the code itself. This action is done to prevent root admin credentials from being exposed in the off chance that the code base is leaked. Any other sensitive information should never be exposed in the code base and should be utilized by env variables. In our panel, hardcoded root admin credentials are stored only in development mode for convenience.
-
-```python
-# config.py (lines 46–48)
-ROOTADMIN_BOOTSTRAP_USERNAME = (os.environ.get("ROOTADMIN_BOOTSTRAP_USERNAME") or "rootadmin").strip()
-ROOTADMIN_BOOTSTRAP_PASSWORD = os.environ.get("ROOTADMIN_BOOTSTRAP_PASSWORD")
-ROOTADMIN_CREATE_TOKEN = os.environ.get("ROOTADMIN_CREATE_TOKEN")
-```
-
-```python
-# routes.py — create_root_admin() (~73–111)
-raw_pw = (config.ROOTADMIN_BOOTSTRAP_PASSWORD or _DEFAULT_ROOTADMIN_PASSWORD).strip()
-username = (config.ROOTADMIN_BOOTSTRAP_USERNAME or "rootadmin").strip() or "rootadmin"
-# ...
-rootadmin = User(username=username, role="rootadmin", credits=999999)
-rootadmin.set_password(raw_pw)
-```
+To create the tree securely, we utilize environment variables during bootstrapping to create the root admin (`ROOTADMIN_BOOTSTRAP_USERNAME`, `ROOTADMIN_BOOTSTRAP_PASSWORD`, `ROOTADMIN_CREATE_TOKEN`). Credentials are not hardcoded so a leaked codebase does not expose production secrets. In development only, a default password may exist for convenience.
 
 The bootstrap HTTP endpoint is gated in production by a constant-time token comparison:
 
@@ -104,34 +69,11 @@ def create_root_admin_endpoint():
             return jsonify({"success": False, "message": "Forbidden"}), 403
 ```
 
-It is essential we have other security features turned on such as HttpOnly cookies to prevent session theft in the unfortunate case that an attacker can find an XSS vulnerability, as well as SameSite = Lax to prevent CSRF. When deploying, we need to make sure we have an env variable set to `production` on our server so that we deploy properly. The existence of the `production` env variable will ensure that we deploy with the most secure settings as opposed to deploying in development mode, where HTTPS is turned off and all traffic is in clear text.
-
-```python
-# config.py (lines 14–17)
-class Config:
-    PERMANENT_SESSION_LIFETIME = timedelta(hours=24)
-    SESSION_COOKIE_SECURE = os.environ.get('FLASK_ENV') == 'production'
-    SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
-```
-
-```python
-# app.py (lines 16–19)
-app.config["SESSION_COOKIE_SECURE"] = config.current_config.SESSION_COOKIE_SECURE
-app.config["SESSION_COOKIE_HTTPONLY"] = config.current_config.SESSION_COOKIE_HTTPONLY
-app.config["SESSION_COOKIE_SAMESITE"] = config.current_config.SESSION_COOKIE_SAMESITE
-```
-
-Successful login establishes a persistent session:
-
-```python
-# routes.py (~310)
-login_user(user, remember=True)
-```
+Session cookies use `HttpOnly`, `SameSite=Lax`, and `Secure` when `FLASK_ENV` is `production` (configured in `config.py` and applied in `app.py`). That reduces session theft via XSS and CSRF when deployed correctly. When deploying, set `FLASK_ENV=production` on the server so HTTPS-only cookies and other production settings apply—not development mode, where traffic may be cleartext.
 
 ## Route protection
 
-Any sensitive action such as deleting users or moving credits requires secure enforcement. We have a `@login_required` wrapper to ensure that the user has valid authentication, as well as a `@require_role` wrapper and `can_manage_user(target)` checks to ensure that the user has proper authorization to perform the action. Forgetting to implement these security measures can allow various types of horizontal and vertical privilege escalation in the admin panel.
+Any sensitive action such as deleting users or moving credits requires secure enforcement. We use `@login_required` for authentication, `@require_role` for role allowlists, and `can_manage_user(target)` before acting on another user. Forgetting any of these checks can allow horizontal or vertical privilege escalation in the panel.
 
 ```python
 # security.py (lines 119–150)
@@ -159,18 +101,7 @@ def require_role(required_roles):
     return decorator
 ```
 
-Panel routes combine authentication and role checks:
-
-```python
-# routes.py (panel routes ~1250+)
-@app.route('/panel')
-@login_required
-@require_role(['rootadmin', 'admin', 'reseller'])
-def panel_dashboard():
-    """Main dashboard for the web panel"""
-    managed_users = users_visible_in_panel(current_user)
-    # ...
-```
+Typical panel routes stack decorators and re-check subtree scope on destructive actions—for example, deleting a user:
 
 ```python
 # routes.py (~1825–1839)
@@ -187,7 +118,7 @@ def panel_delete_user(username):
 
 ## Moving credits
 
-Credit transfers and balance changes are guarded by `can_manage_user()` and additional role checks so non-administrators cannot mint or arbitrarily edit credits.
+Credit transfers and balance changes are guarded by `can_manage_user()` and additional role checks so non-administrators cannot mint or arbitrarily edit credits. User-update handlers reject credit edits from non-admins and restrict role changes to root admin only.
 
 ```python
 # routes.py (~991–1021)
@@ -214,37 +145,14 @@ def extend_credits():
     # ... transfer credits, log TRANSFER / EXTEND ...
 ```
 
-User update endpoints enforce the same subtree scope and restrict credit/role edits by role:
-
-```python
-# routes.py (~1518–1555)
-if not current_user.can_manage_user(user):
-    return jsonify({"success": False, "message": "Insufficient permissions"}), 403
-if 'credits' in data and current_user.role in ['rootadmin', 'admin']:
-    # manual credit adjustment ...
-elif 'credits' in data and current_user.role not in ['rootadmin', 'admin']:
-    return jsonify({"success": False, "message": "Only administrators can edit user credits"}), 403
-if 'role' in data and current_user.role == 'rootadmin':
-  # only root admin may change roles ...
-```
-
 ## Audit trails
 
-Audit trails allow administrators the ability to view previous actions and ensure nothing malicious has happened. This panel audits authentication failures, admin actions, and credit adjustments with timestamp, IP, and before/after balances for proper incident review and abuse detection. For extra security, it is recommended to include some type of cryptographic enforcement in the case that a malicious actor obtains database write access. This would prevent anyone from being able to tamper with audit logs. Cryptographic enforcement can be achieved using tools such as HMAC or hash chains.
+Audit trails allow administrators to review prior actions and detect abuse. The panel logs authentication outcomes, admin actions, and credit adjustments with timestamp, IP, and contextual details for incident review. For stronger assurance against database tampering, consider HMAC or hash chains over log entries.
+
+`log_security_event()` persists rows to `SecurityAuditLog` and is called at sensitive points (login, user creation, credit changes):
 
 ```python
-# models.py (~182–191)
-class SecurityAuditLog(db.Model):
-    event_type = db.Column(db.String(50), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=True)
-    ip_address = db.Column(db.String(45), nullable=False)
-    user_agent = db.Column(db.String(500), nullable=True)
-    details = db.Column(db.Text, nullable=True)
-    severity = db.Column(db.String(20), default='INFO')
-```
-
-```python
-# security.py (~152–186)
+# security.py (~152–186); routes.py (~298–310) at login
 def log_security_event(event_type, user_id=None, details=None, ip_address=None, severity='INFO'):
     audit_log = SecurityAuditLog(
         event_type=event_type,
@@ -256,27 +164,13 @@ def log_security_event(event_type, user_id=None, details=None, ip_address=None, 
     )
     db.session.add(audit_log)
     db.session.commit()
-```
 
-Login and user creation are logged at the point of action:
-
-```python
-# routes.py (~298–310)
+# Example: LOGIN_SUCCESS after successful authentication
 log_security_event(
     event_type="LOGIN_SUCCESS",
     user_id=user.id,
     ip_address=request.remote_addr,
     details=f"Login successful for user {username}"
-)
-login_user(user, remember=True)
-```
-
-```python
-# routes.py (~1717–1721)
-log_security_event(
-    event_type="USER_CREATED",
-    user_id=current_user.id,
-    details=f"Created user {username} (role: {role}) with {credits} credits"
 )
 ```
 
