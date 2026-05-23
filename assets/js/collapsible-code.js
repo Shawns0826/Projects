@@ -12,7 +12,7 @@
     return "code";
   }
 
-  function wrapBlock(block, labelSource) {
+  function wrapBlock(block) {
     if (block.closest("details.code-collapse")) return false;
 
     var details = document.createElement("details");
@@ -20,7 +20,7 @@
 
     var summary = document.createElement("summary");
     summary.className = "code-collapse__summary";
-    summary.textContent = "Show " + labelFor(labelSource || block) + " code";
+    summary.textContent = "Show " + labelFor(block) + " code";
 
     block.parentNode.insertBefore(details, block);
     details.appendChild(summary);
@@ -35,17 +35,11 @@
     var seen = new WeakSet();
 
     prose.querySelectorAll(".highlighter-rouge").forEach(function (block) {
+      if (block.tagName === "CODE") return;
+      if (!block.querySelector(".highlight")) return;
       if (seen.has(block)) return;
       seen.add(block);
       wrapBlock(block);
-    });
-
-    prose.querySelectorAll("pre").forEach(function (pre) {
-      if (seen.has(pre)) return;
-      if (pre.closest(".highlighter-rouge") || pre.closest("details.code-collapse")) return;
-      if (!pre.querySelector("code")) return;
-      seen.add(pre);
-      wrapBlock(pre, pre.querySelector("code"));
     });
   }
 
