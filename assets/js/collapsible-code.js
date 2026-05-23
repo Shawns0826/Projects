@@ -31,7 +31,7 @@
 
       var details = document.createElement("details");
       details.className = "code-collapse";
-      details.open = true;
+      details.open = false;
 
       var summary = document.createElement("summary");
       summary.className = "code-collapse__summary";

@@ -736,6 +736,10 @@ body.site {
   transform: rotate(90deg) translate(-0.05em, 0.02em);
 }
 
+.code-collapse:not([open]) > .code-collapse__summary {
+  border-bottom: none;
+}
+
 .code-collapse .highlight {
   margin: 0;
   border: none;
