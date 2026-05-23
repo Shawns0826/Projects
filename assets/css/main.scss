@@ -740,6 +740,11 @@ body.site {
   border-bottom: none;
 }
 
+/* Closed <details> must hide code even if .highlight sets display */
+.code-collapse:not([open]) > :not(summary) {
+  display: none !important;
+}
+
 .code-collapse .highlight {
   margin: 0;
   border: none;

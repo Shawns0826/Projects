@@ -9,13 +9,23 @@
       var m = code.className.match(/language-([^\s]+)/);
       if (m) return m[1];
     }
-    return "Code";
+    return "code";
   }
 
-  function rootForHighlight(hl) {
-    var p = hl.parentElement;
-    if (p && p.classList.contains("highlighter-rouge")) return p;
-    return hl;
+  function wrapBlock(block, labelSource) {
+    if (block.closest("details.code-collapse")) return false;
+
+    var details = document.createElement("details");
+    details.className = "code-collapse";
+
+    var summary = document.createElement("summary");
+    summary.className = "code-collapse__summary";
+    summary.textContent = "Show " + labelFor(labelSource || block) + " code";
+
+    block.parentNode.insertBefore(details, block);
+    details.appendChild(summary);
+    details.appendChild(block);
+    return true;
   }
 
   function wrapBlocks() {
@@ -23,23 +33,19 @@
     if (!prose) return;
 
     var seen = new WeakSet();
-    prose.querySelectorAll(".highlight").forEach(function (hl) {
-      var block = rootForHighlight(hl);
+
+    prose.querySelectorAll(".highlighter-rouge").forEach(function (block) {
       if (seen.has(block)) return;
       seen.add(block);
-      if (block.closest("details.code-collapse")) return;
+      wrapBlock(block);
+    });
 
-      var details = document.createElement("details");
-      details.className = "code-collapse";
-      details.open = false;
-
-      var summary = document.createElement("summary");
-      summary.className = "code-collapse__summary";
-      summary.textContent = labelFor(block);
-
-      block.parentNode.insertBefore(details, block);
-      details.appendChild(summary);
-      details.appendChild(block);
+    prose.querySelectorAll("pre").forEach(function (pre) {
+      if (seen.has(pre)) return;
+      if (pre.closest(".highlighter-rouge") || pre.closest("details.code-collapse")) return;
+      if (!pre.querySelector("code")) return;
+      seen.add(pre);
+      wrapBlock(pre, pre.querySelector("code"));
     });
   }
 
