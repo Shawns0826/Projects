@@ -100,7 +100,7 @@ Now the method can simply be rewritten as:
 .end method
 ```
 
-Now that this simple root detection has been bypassed,it is now time to sign and install the cracked client into our rooted device and we are ready to begin exploitation.
+Now that this simple root detection has been bypassed,it is now time to sign and install modified client into our rooted device and we are ready to begin exploitation.
 
 (It is important to note that there are various ways to make root detection bypass much more difficult which can slow down an attacker such as using play integrity attestation, native code, server side anomaly scoring etc. Even then, anything ran on a attacker controlled device can eventually be hooked or bypassed. This is why in Application security, it is good practice to always assume the client is compromised.)
 
@@ -221,7 +221,7 @@ and after building and signing, their new patched client now returns the same ha
 
 
 ## Business Impact
-What was achieved here and why would this matter to the victim? Now, this patched client can be distributed to others, and each device using this patched client will send the same deviceId to the server. Concurrent session restriction has comepletely been bypassed now that the server has no way of telling one device from another. This leads to a direct attack on the business model of the victim as they rely on subscriptions in order to operate. If this method were to leak online, multiple people could take advantage of this bypass leading to significant revenue loss for the victim company. 
+What was achieved here and why would this matter to the victim? Now, this patched client can be distributed to others, and each device using this patched client will send the same deviceId to the server. Concurrent session restriction has comepletely been bypassed now that the server has no way of telling one device from another. This directly impacts the victim’s subscription-revenue model. If this method were to leak online, multiple people could take advantage of this bypass leading to significant revenue loss for the victim company. 
 
 Most bug bounty programs and audits would consider this a low impact vulnerability. Some companies even consider this an acceptable side affect due to relying on only client side session enforcement. However, a skilled attacker can chain this vulnerability with other technologies to scale the exploitation by directly siphoning revenue from the company themselves, turning this otherwise low impact vulnerability into high impact fast. See [Reverse Proxy MITM: Escalating Weak Session Enforcement to Critical]({{ '/case-studies/reverse-proxy-mitm-demonstration/' | relative_url }}).
 

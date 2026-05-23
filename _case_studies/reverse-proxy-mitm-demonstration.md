@@ -7,6 +7,7 @@ tags:
   - Application Security
   - Android Security
   - Traffic Interception
+  - Exploit Chaining
 date: 2026-05-10
 series: mitm-exploit
 series_order: 2
@@ -14,7 +15,7 @@ series_order: 2
 
 It is common in the industry that the ability to bypass client-side session enforcement is ranked low severity. In this paper, we will demonstrate how a capable attacker can take this otherwise low-severity vulnerability and escalate it to a critical one through reverse engineering and proxying.
 
-This project is a demonstration of a unique exploit where a malicious actor can siphon revenue from a victim company. In this example, our target is a digital media Android TV/mobile app (APK). Although similar, this attack is not to be confused with phishing, in which an attacker sets up a MITM (man-in-the-middle) proxy through a similar-looking domain (changing `outlook.com/login` to `outlook.co/login`) and waits for users to land on their fake website, authenticates, then finally steals their session. In this attack, a MITM proxy is also used, but instead of stealing sessions, the goal is to use a reverse proxy to transparently broker access to the victim service itself.
+This project demonstrates how a malicious actor can siphon revenue from an upstream service through transparent reverse-proxy brokering. In this example, our target is a digital media Android TV/mobile app (APK). Although similar, this attack is not to be confused with phishing, in which an attacker sets up a MITM (man-in-the-middle) proxy through a similar-looking domain (changing `outlook.com/login` to `outlook.co/login`) and waits for users to land on their fake website, authenticates, then finally steals their session. In this attack, a MITM proxy is also used, but instead of stealing sessions, the goal is to use a reverse proxy to transparently broker access to the victim service itself.
 
 Everything present in the demonstration has been anonymized.
 
@@ -28,26 +29,18 @@ Any app that has weak concurrent session restrictions and no attestation enforce
 
 Through reverse engineering, an attacker has full control over the client. We assume they would disassemble the app using Apktool and grep for `url`. The following method would be discovered.
 
-```smali
-.method public getDefaultBaseUrl()Ljava/lang/String;
-    .locals 1
+```
 
     const-string v0, "https://original-server-url.com/"
 
-    return-object v0
-.end method
 ```
 
-Again, because the attacker has full control of the client, it is safe to assume an attacker can modify the client such that they change the server URL that the client normally sends requests to, to their own server like this.
+An attacker can modify the client such that they change the server URL that the client normally points to, to their own server like this.
 
-```smali
-.method public getDefaultBaseUrl()Ljava/lang/String;
-    .locals 1
+```
 
     const-string v0, "https://attacker-url.com/"
 
-    return-object v0
-.end method
 ```
 
 The attacker would build and sign the app. Now they have the same client as the original app; the only difference is that HTTP(S) requests will now be sent to an attacker-controlled proxy server instead of the original service.
