@@ -21,7 +21,7 @@ Everything present in the demonstration has been anonymized.
 
 The proxy presents itself as a standalone service that independently handles registration, authentication, and session management while secretly relaying upstream requests to the upstream target application when specific content is requested. In this attack, the legitimate platform becomes an invisible backend content provider for the attacker rather than the primary user-facing service. This enables unauthorized monetization of proxied access to the upstream platform.
 
-<a href="{{ '/assets/images/mitm-reverse-proxy-overview.webp' | relative_url }}" target="_blank" rel="noopener">
+<a class="figure-expand" href="{{ '/assets/images/mitm-reverse-proxy-overview.webp' | relative_url }}">
   <img src="{{ '/assets/images/mitm-reverse-proxy-overview.webp' | relative_url }}" alt="High-level view of the reverse-proxy broker model">
 </a>
 
@@ -49,7 +49,7 @@ The attacker would build and sign the app. Now they have the same client as the 
 
 Nothing else about the client needs to change—in fact it is more convenient for the attacker to leave the client as is. Now they would map every endpoint the client requests, and ensure they intercept any that involve authorization or authentication. The attacker would set up their own custom logic for dealing with authorization or authentication. This involves validating usernames and passwords, assigning session tokens, registering accounts, and so on. Anything else, such as fetching media, is upstreamed to the victim server and then returned to the user. This lets the attacker monetize access to the victim’s resources.
 
-<a href="{{ '/assets/images/mitm-reverse-proxy-flow.webp' | relative_url }}" target="_blank" rel="noopener">
+<a class="figure-expand" href="{{ '/assets/images/mitm-reverse-proxy-flow.webp' | relative_url }}">
   <img src="{{ '/assets/images/mitm-reverse-proxy-flow.webp' | relative_url }}" alt="Request flow: attacker-facing auth vs upstreamed content">
 </a>
 
