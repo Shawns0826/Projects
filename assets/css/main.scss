@@ -619,6 +619,18 @@ body.site {
   margin: 1.25rem auto;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
+  cursor: zoom-in;
+}
+
+.prose a:has(> img) {
+  display: block;
+  max-width: 100%;
+  margin: 1.25rem auto;
+  line-height: 0;
+}
+
+.prose a:has(> img) img {
+  margin: 0;
 }
 
 .prose h2 {

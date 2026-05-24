@@ -18,7 +18,9 @@ The platform implements a hierarchical subtree-based RBAC model. The subtree str
 
 Each user is a node in the subtree and can only manage users under their local tree, with the root administrator at the top. This prevents a user from managing another user that is not under their subtree, preventing horizontal escalation.
 
-![Subtree hierarchy and role relationships]({{ "/assets/images/rbac-admin-panel-hierarchy.webp" | relative_url }})
+<a href="{{ '/assets/images/rbac-admin-panel-hierarchy.webp' | relative_url }}" target="_blank" rel="noopener">
+  <img src="{{ '/assets/images/rbac-admin-panel-hierarchy.webp' | relative_url }}" alt="Subtree hierarchy and role relationships">
+</a>
 
 The `User` model stores `role` and `parent_id` / `children` relationships that define the tree. Subtree authorization is enforced in `can_manage_user()` and `is_in_hierarchy()`:
 
